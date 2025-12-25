@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
-@section('title', 'jadwal Konseling')
-@section('breadcumb', 'jadwal Konseling')
+@section('title', 'Jadwal Konseling')
+@section('breadcumb', 'Jadwal Konseling')
 @section('content')
     <div class="container mt-5">
         <div class="card">

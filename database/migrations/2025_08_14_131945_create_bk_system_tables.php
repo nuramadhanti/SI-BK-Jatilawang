@@ -64,7 +64,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Tabel Kategori Konseling (Priority Scheduling)
+        // Tabel Kategori Konseling (Priority Scheduling)a
         Schema::create('kategori_konseling', function (Blueprint $table) {
             $table->id();
             $table->string('nama');

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class GuruController extends Controller
 {
-    public function index()
+    public function index() //dok
     {
         $guru = Guru::with(['user', 'kelas'])->get();
         $kelas = Kelas::all();
