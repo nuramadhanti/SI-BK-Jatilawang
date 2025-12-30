@@ -32,6 +32,12 @@ class LaporanController extends Controller
             });
         }
 
+        //FILTER KATEGORI MASALAH
+       if ($request->filled('kategori_masalah')) {
+            $query->where('kategori_masalah_label', $request->kategori_masalah);
+        }
+
+
         $laporan = $query->get();
 
         return view('laporan.index', [
@@ -62,7 +68,6 @@ class LaporanController extends Controller
                 $q->where('kelas_id', $request->kelas);
             });
         }
-
         $laporan = $query->get();
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('laporan.pdf', [

@@ -38,6 +38,25 @@
                         </select>
                     </div>
 
+                   <!-- <div class="col-md-3">
+                        <label class="form-label">Kategori Masalah</label>
+                        <select name="kategori_masalah" class="form-select">
+                            <option value="">Semua Kategori</option>
+                            <option value="Akademik" {{ request('kategori_masalah') == 'Akademik' ? 'selected' : '' }}>
+                                Akademik
+                            </option>
+                            <option value="Karir" {{ request('kategori_masalah') == 'Karir' ? 'selected' : '' }}>
+                                Karir
+                            </option>
+                            <option value="Pribadi" {{ request('kategori_masalah') == 'Pribadi' ? 'selected' : '' }}>
+                                Pribadi
+                            </option>
+                            <option value="Sosial" {{ request('kategori_masalah') == 'Sosial' ? 'selected' : '' }}>
+                                Sosial
+                            </option>
+                        </select>
+                    </div> -->
+                    
                     <div class="col-md-2 d-flex align-items-end">
                         <button class="btn btn-primary w-100">
                             <i class="bi bi-search"></i> Pilih
