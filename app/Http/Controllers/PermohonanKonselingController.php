@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\PermohonanKonseling;
+use App\Models\PermohonanKriteria;
 use App\Models\KategoriKonseling;
+use App\Models\Kriteria;
 use App\Models\Siswa;
 use App\Notifications\PermohonanKonselingNotification;
 use Illuminate\Http\Request;
@@ -22,10 +24,10 @@ class PermohonanKonselingController extends Controller
 
         $user = Auth::user();
 
-        $query = PermohonanKonseling::with(['siswa.user'])
+        $query = PermohonanKonseling::with(['siswa.user', 'permohonanKriterias.kriteria', 'permohonanKriterias.subKriteria'])
             ->where('status', 'menunggu')
             ->orderBy('skor_prioritas', 'desc')
-            ->orderBy('created_at', 'asc');
+            ->orderBy('created_at', 'desc');
 
         $siswaWali = collect();
 
@@ -50,26 +52,20 @@ class PermohonanKonselingController extends Controller
 
         $permohonanKonseling = $query->get();
         $kategoriKonseling = KategoriKonseling::all();
+        $kriterias = Kriteria::where('aktif', true)->orderBy('urutan')->get();
 
         return view('permohonan-konseling.index', compact(
             'permohonanKonseling',
             'kategoriKonseling',
-            'siswaWali'
+            'siswaWali',
+            'kriterias'
         ));
     }
     public function store(Request $request)
     {
         $request->validate([
             'deskripsi_permasalahan' => 'required|string',
-            'tingkat_urgensi_label' => 'required|string',
-            'tingkat_urgensi_skor' => 'required|integer',
-            'dampak_masalah_label' => 'required|string',
-            'dampak_masalah_skor' => 'required|integer',
-            'kategori_masalah_label' => 'required|string',
-            'kategori_masalah_skor' => 'required|integer',
-            'riwayat_konseling_label' => 'required|string',
-            'riwayat_konseling_skor' => 'required|integer',
-
+            'bukti_masalah' => 'nullable|file|mimes:jpeg,jpg,png,mp4,mov,avi|max:50000',
             'siswa_id' => 'required_if:role,guru',
         ]);
 
@@ -79,41 +75,99 @@ class PermohonanKonselingController extends Controller
 
         $siswaId = $user->siswa->id ?? $request->siswa_id;
 
-        $skorAkhir =
-            ($request->tingkat_urgensi_skor * 0.4) +
-            ($request->dampak_masalah_skor * 0.3) +
-            ($request->kategori_masalah_skor * 0.2) +
-            ($request->riwayat_konseling_skor * 0.1);
-
         $path = null;
 
         if ($request->hasFile('bukti_masalah')) {
             $path = $request->file('bukti_masalah')->store('bukti-masalah', 'public');
         }
 
+        // Collect kriteria dari request (radio buttons dengan format sub_kriteria_{id})
+        $kriteriaSubmitted = [];
+        foreach ($request->all() as $key => $value) {
+            if (strpos($key, 'sub_kriteria_') === 0 && !empty($value)) {
+                $kriteriaSubmitted[] = $value;
+            }
+        }
+
+        if (empty($kriteriaSubmitted)) {
+            return redirect()->back()->withErrors('Pilih minimal satu kriteria untuk setiap kategori.');
+        }
+
+        // AUTO-DETECT: Ambil sub-kriteria riwayat konseling dari history
+        $siswa = Siswa::findOrFail($siswaId);
+        $subKriteriaRiwayatOtomatis = $siswa->getSubKriteriaRiwayatOtomatis();
+        
+        if ($subKriteriaRiwayatOtomatis) {
+            // Tambahkan otomatis ke kriteria yang dipilih
+            $kriteriaSubmitted[] = $subKriteriaRiwayatOtomatis->id;
+        }
+
+        // Get all kriteria
+        $allKriterias = Kriteria::with('subKriterias')->get();
+        
+        /**
+         * PERHITUNGAN SKOR AKHIR
+         * RUMUS: Skor Akhir = (k1 × bobot) + (k2 × bobot) + (k3 × bobot) + (k4 × bobot) + ...
+         * 
+         * Dimana:
+         * - k1, k2, k3, dst = skor sub-kriteria yang dipilih user
+         * - bobot = bobot kriteria dari database (0-1)
+         * 
+         * Iterasi setiap sub-kriteria yang dipilih, ambil scorenya,
+         * kalikan dengan bobot kriteria, lalu jumlahkan semuanya
+         */
+        $skorAkhir = 0;
+        $kriteriaBreakdown = []; // Untuk tracking detail perhitungan
+
+        // Hitung skor akhir dan siapkan data
+        $permohonanKriteriaData = [];
+        foreach ($kriteriaSubmitted as $subKriteriaId) {
+            $subKriteria = \App\Models\SubKriteria::with('kriteria')->findOrFail($subKriteriaId);
+            $skor = $subKriteria->skor;
+            $bobot = $subKriteria->kriteria->bobot;
+            $skorTerbobot = $skor * $bobot;
+            
+            // Accumulate score: Skor Akhir += (skor × bobot)
+            $skorAkhir += $skorTerbobot;
+            
+            // Log breakdown untuk audit trail
+            $kriteriaBreakdown[] = [
+                'kriteria' => $subKriteria->kriteria->nama,
+                'skor' => $skor,
+                'bobot' => $bobot,
+                'hasil' => $skorTerbobot
+            ];
+
+            $permohonanKriteriaData[] = [
+                'kriteria_id' => $subKriteria->kriteria_id,
+                'sub_kriteria_id' => $subKriteria->id,
+                'skor' => $skor,
+            ];
+        }
+
+        // Round final score ke 2 desimal
+        $skorAkhir = round($skorAkhir, 2);
+
+        // Create permohonan
         $permohonan = PermohonanKonseling::create([
             'siswa_id' => $siswaId,
             'tanggal_pengajuan' => now(),
             'deskripsi_permasalahan' => $request->deskripsi_permasalahan,
             'bukti_masalah' => $path,
             'status' => 'menunggu',
-
             'report_type' => $reportType,
-
-            'tingkat_urgensi_label' => $request->tingkat_urgensi_label,
-            'tingkat_urgensi_skor' => $request->tingkat_urgensi_skor,
-
-            'dampak_masalah_label' => $request->dampak_masalah_label,
-            'dampak_masalah_skor' => $request->dampak_masalah_skor,
-
-            'kategori_masalah_label' => $request->kategori_masalah_label,
-            'kategori_masalah_skor' => $request->kategori_masalah_skor,
-
-            'riwayat_konseling_label' => $request->riwayat_konseling_label,
-            'riwayat_konseling_skor' => $request->riwayat_konseling_skor,
-
             'skor_prioritas' => $skorAkhir,
         ]);
+
+        // Simpan kriteria yang dipilih
+        foreach ($permohonanKriteriaData as $data) {
+            PermohonanKriteria::create([
+                'permohonan_konseling_id' => $permohonan->id,
+                'kriteria_id' => $data['kriteria_id'],
+                'sub_kriteria_id' => $data['sub_kriteria_id'],
+                'skor' => $data['skor'],
+            ]);
+        }
 
         $guruBk = User::whereHas('guru', fn($q) => $q->where('role_guru', 'bk'))->get();
         $pengaju = $user->name;

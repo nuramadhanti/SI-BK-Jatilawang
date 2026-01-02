@@ -45,6 +45,14 @@
                 </ul>
             </li>
 
+            {{-- KRITERIA --}}
+            <li class="sidebar-item {{ request()->is('kriteria') ? 'active' : '' }}">
+                <a href="/kriteria" class="sidebar-link d-flex align-items-center gap-2">
+                    <i class="bi bi-filter-circle-fill"></i>
+                    <span>Kriteria</span>
+                </a>
+            </li>
+
             {{-- PERMOHONAN KONSELING --}}
             <li class="sidebar-item {{ request()->is('permohonan-konseling') ? 'active' : '' }}">
                 <a href="/permohonan-konseling" class="sidebar-link d-flex align-items-center gap-2">

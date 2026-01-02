@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\PermohonanKonseling;
 use App\Models\TahunAkademik;
 use App\Models\Kelas;
+use App\Models\Kriteria;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
@@ -18,7 +20,9 @@ class LaporanController extends Controller
         $query = PermohonanKonseling::with([
             'siswa.user',
             'siswa.kelas',
-            'guruBk.user'
+            'guruBk.user',
+            'permohonanKriterias.kriteria',
+            'permohonanKriterias.subKriteria'
         ])->where('status', 'selesai');
 
         // Filter untuk orangtua - hanya melihat laporan anaknya sendiri
@@ -46,15 +50,69 @@ class LaporanController extends Controller
             $query->where('kategori_masalah_label', $request->kategori_masalah);
         }
 
-
         $laporan = $query->get();
 
-        return view('laporan.index', [
-            'laporan' => $laporan,
-            'tahunAjaranList' => $tahunAjaranList,
-            'kelasList' => $kelasList,
-            'request' => $request
-        ]);
+        // Analytics untuk Kriteria
+        $analytics = $this->getAnalytics($laporan);
+
+        return view('laporan.index', compact('laporan', 'tahunAjaranList', 'kelasList', 'analytics', 'request'));
+    }
+
+    private function getAnalytics($laporan)
+    {
+        $analytics = [
+            'totalPermohonan' => $laporan->count(),
+            'skorDistribusi' => [],
+            'skorPerKriteria' => [],
+            'permohonanTertinggi' => [],
+        ];
+
+        // Distribusi Skor
+        $skorRanges = [
+            'Sangat Tinggi (80-100)' => 0,
+            'Tinggi (60-79)' => 0,
+            'Sedang (40-59)' => 0,
+            'Rendah (<40)' => 0,
+        ];
+
+        foreach ($laporan as $item) {
+            if ($item->skor_prioritas >= 80) {
+                $skorRanges['Sangat Tinggi (80-100)']++;
+            } elseif ($item->skor_prioritas >= 60) {
+                $skorRanges['Tinggi (60-79)']++;
+            } elseif ($item->skor_prioritas >= 40) {
+                $skorRanges['Sedang (40-59)']++;
+            } else {
+                $skorRanges['Rendah (<40)']++;
+            }
+        }
+
+        $analytics['skorDistribusi'] = $skorRanges;
+
+        // Rata-rata Skor per Kriteria
+        $kriterias = Kriteria::where('aktif', true)->get();
+        foreach ($kriterias as $kriteria) {
+            $avgSkor = 0;
+            $count = 0;
+            
+            foreach ($laporan as $item) {
+                $pk = $item->permohonanKriterias->firstWhere('kriteria_id', $kriteria->id);
+                if ($pk) {
+                    $avgSkor += $pk->skor;
+                    $count++;
+                }
+            }
+            
+            $analytics['skorPerKriteria'][$kriteria->nama] = $count > 0 ? round($avgSkor / $count, 2) : 0;
+        }
+
+        // Permohonan dengan Skor Tertinggi
+        $analytics['permohonanTertinggi'] = $laporan
+            ->sortByDesc('skor_prioritas')
+            ->take(5)
+            ->values();
+
+        return $analytics;
     }
 
     public function cetakPdf(Request $request)

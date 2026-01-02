@@ -53,16 +53,58 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <strong>{{ $jadwal->skor_prioritas }}</strong>
-                                        <div class="text-muted small">
-                                            <div>Urgensi: {{ $jadwal->tingkat_urgensi_label }}
-                                                ({{ $jadwal->tingkat_urgensi_skor }})</div>
-                                            <div>Dampak: {{ $jadwal->dampak_masalah_label }}
-                                                ({{ $jadwal->dampak_masalah_skor }})</div>
-                                            <div>Kategori: {{ $jadwal->kategori_masalah_label }}
-                                                ({{ $jadwal->kategori_masalah_skor }})</div>
-                                            <div>Riwayat: {{ $jadwal->riwayat_konseling_label }}
-                                                ({{ $jadwal->riwayat_konseling_skor }})</div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge 
+                                                @if($jadwal->skor_prioritas >= 85)
+                                                    bg-danger
+                                                @elseif($jadwal->skor_prioritas >= 65)
+                                                    bg-warning text-dark
+                                                @elseif($jadwal->skor_prioritas >= 32.5)
+                                                    bg-info
+                                                @else
+                                                    bg-secondary
+                                                @endif
+                                                fs-6">
+                                                {{ $jadwal->skor_prioritas }}
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" 
+                                                title="{{ $jadwal->getRumusSkorAkhir() }}">
+                                                <i class="bi bi-info-circle"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        {{-- Breakdown Detail (Expandable) --}}
+                                        <small class="text-muted d-block mt-2">
+                                            <a class="text-decoration-none" style="cursor: pointer;" 
+                                                onclick="toggleBreakdown(event, {{ $jadwal->id }})">
+                                                <i class="bi bi-chevron-right"></i> Detail Perhitungan
+                                            </a>
+                                        </small>
+                                        
+                                        <div id="breakdown-{{ $jadwal->id }}" class="breakdown-detail mt-2" 
+                                            style="display: none; font-size: 0.85rem;">
+                                            @php $breakdown = $jadwal->getBreakdownSkor() @endphp
+                                            <table class="table table-sm table-borderless">
+                                                <tbody>
+                                                    @foreach($breakdown as $item)
+                                                        <tr>
+                                                            <td class="ps-0">{{ $item['kriteria_nama'] }}:</td>
+                                                            <td class="text-center" style="width: 120px;">
+                                                                <code>{{ $item['skor_sub_kriteria'] }} × {{ $item['bobot'] }}</code>
+                                                            </td>
+                                                            <td class="text-end pe-0" style="width: 60px;">
+                                                                <strong>{{ $item['skor_terbobot'] }}</strong>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                    <tr class="border-top border-secondary">
+                                                        <td colspan="2" class="ps-0 text-end"><strong>Skor Akhir:</strong></td>
+                                                        <td class="text-end pe-0">
+                                                            <strong class="text-primary">{{ $jadwal->skor_prioritas }}</strong>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </td>
 
@@ -219,6 +261,29 @@
                 $('#editTanggal').val(formattedDate);
                 $('#editTempat').val(tempat);
             });
+
+            // Initialize tooltips untuk show rumus
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, { html: true });
+            });
         });
+
+        // Toggle breakdown detail
+        function toggleBreakdown(event, id) {
+            event.preventDefault();
+            const element = document.getElementById('breakdown-' + id);
+            const icon = event.target.closest('i');
+            
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+                icon.classList.remove('bi-chevron-right');
+                icon.classList.add('bi-chevron-down');
+            } else {
+                element.style.display = 'none';
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-right');
+            }
+        }
     </script>
 @endsection

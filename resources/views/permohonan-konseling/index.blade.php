@@ -72,46 +72,63 @@
                                         @endif
                                     </td>
 
-                                    {{-- SKOR PRIORITAS --}}
+                                    {{-- SKOR PRIORITAS DENGAN BREAKDOWN --}}
                                     <td>
-                                        <strong>{{ $permohonan->skor_prioritas }}</strong>
-                                        <div class="text-muted small">
-                                            <div>Urgensi: {{ $permohonan->tingkat_urgensi_label }}
-                                                ({{ $permohonan->tingkat_urgensi_skor }})</div>
-                                            <div>Dampak: {{ $permohonan->dampak_masalah_label }}
-                                                ({{ $permohonan->dampak_masalah_skor }})</div>
-                                            <div>Kategori: {{ $permohonan->kategori_masalah_label }}
-                                                ({{ $permohonan->kategori_masalah_skor }})</div>
-                                            <div>Riwayat: {{ $permohonan->riwayat_konseling_label }}
-                                                ({{ $permohonan->riwayat_konseling_skor }})</div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge 
+                                                @if($permohonan->skor_prioritas >= 85)
+                                                    bg-danger
+                                                @elseif($permohonan->skor_prioritas >= 65)
+                                                    bg-warning text-dark
+                                                @elseif($permohonan->skor_prioritas >= 32.5)
+                                                    bg-info
+                                                @else
+                                                    bg-secondary
+                                                @endif
+                                                fs-6">
+                                                {{ $permohonan->skor_prioritas }}
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" 
+                                                title="{{ $permohonan->getRumusSkorAkhir() }}">
+                                                <i class="bi bi-info-circle"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        {{-- Breakdown Detail (Expandable) --}}
+                                        <small class="text-muted d-block mt-2">
+                                            <a class="text-decoration-none" style="cursor: pointer;" 
+                                                onclick="toggleBreakdown(event, {{ $permohonan->id }})">
+                                                <i class="bi bi-chevron-right"></i> Detail Perhitungan
+                                            </a>
+                                        </small>
+                                        
+                                        <div id="breakdown-{{ $permohonan->id }}" class="breakdown-detail mt-2" 
+                                            style="display: none; font-size: 0.85rem;">
+                                            @php $breakdown = $permohonan->getBreakdownSkor() @endphp
+                                            <table class="table table-sm table-borderless">
+                                                <tbody>
+                                                    @foreach($breakdown as $item)
+                                                        <tr>
+                                                            <td class="ps-0">{{ $item['kriteria_nama'] }}:</td>
+                                                            <td class="text-center" style="width: 120px;">
+                                                                <code>{{ $item['skor_sub_kriteria'] }} × {{ $item['bobot'] }}</code>
+                                                            </td>
+                                                            <td class="text-end pe-0" style="width: 60px;">
+                                                                <strong>{{ $item['skor_terbobot'] }}</strong>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                    <tr class="border-top border-secondary">
+                                                        <td colspan="2" class="ps-0 text-end"><strong>Skor Akhir:</strong></td>
+                                                        <td class="text-end pe-0">
+                                                            <strong class="text-primary">{{ $permohonan->skor_prioritas }}</strong>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </td>
 
-                                    @if (auth()->user()->role === 'guru' && auth()->user()->guru && auth()->user()->guru->role_guru === 'bk')
-                                        <td>
-                                            @if ($permohonan->status === 'menunggu')
-                                                <button class="btn btn-sm btn-success approve-permohonan"
-                                                    data-id="{{ $permohonan->id }}" data-bs-toggle="modal"
-                                                    data-bs-target="#approveModal">
-                                                    <i class="bi bi-check-circle"></i> Setujui
-                                                </button>
-
-                                                <button class="btn btn-sm btn-danger reject-permohonan"
-                                                    data-id="{{ $permohonan->id }}" data-bs-toggle="modal"
-                                                    data-bs-target="#rejectModal">
-                                                    <i class="bi bi-x-circle"></i> Tolak
-                                                </button>
-                                            @endif
-
-                                            @if ($permohonan->status === 'disetujui')
-                                                <button class="btn btn-sm btn-primary complete-permohonan"
-                                                    data-id="{{ $permohonan->id }}" data-bs-toggle="modal"
-                                                    data-bs-target="#completeModal">
-                                                    <i class="bi bi-check2-all"></i> Selesai
-                                                </button>
-                                            @endif
-                                        </td>
-                                    @endif
                                     <td>
                                         @if ($permohonan->bukti_masalah)
                                             @php
@@ -145,6 +162,32 @@
                                             <span class="text-muted">-</span>
                                         @endif
                                     </td>
+
+                                    @if (auth()->user()->role === 'guru' && auth()->user()->guru && auth()->user()->guru->role_guru === 'bk')
+                                        <td>
+                                            @if ($permohonan->status === 'menunggu')
+                                                <button class="btn btn-sm btn-success approve-permohonan"
+                                                    data-id="{{ $permohonan->id }}" data-bs-toggle="modal"
+                                                    data-bs-target="#approveModal">
+                                                    <i class="bi bi-check-circle"></i> Setujui
+                                                </button>
+
+                                                <button class="btn btn-sm btn-danger reject-permohonan"
+                                                    data-id="{{ $permohonan->id }}" data-bs-toggle="modal"
+                                                    data-bs-target="#rejectModal">
+                                                    <i class="bi bi-x-circle"></i> Tolak
+                                                </button>
+                                            @endif
+
+                                            @if ($permohonan->status === 'disetujui')
+                                                <button class="btn btn-sm btn-primary complete-permohonan"
+                                                    data-id="{{ $permohonan->id }}" data-bs-toggle="modal"
+                                                    data-bs-target="#completeModal">
+                                                    <i class="bi bi-check2-all"></i> Selesai
+                                                </button>
+                                            @endif
+                                        </td>
+                                    @endif
                                 </tr>
                             @endforeach
                         </tbody>
@@ -168,7 +211,7 @@
                     <form method="POST" action="{{ route('permohonan-konseling.store') }}" enctype="multipart/form-data">
                         @csrf
 
-                        <div class="modal-body">
+                        <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
 
                             @if (auth()->user()->role === 'guru' && auth()->user()->guru->role_guru === 'walikelas')
                                 <div class="mb-3">
@@ -186,90 +229,12 @@
                                 </div>
                             @endif
 
-                            {{-- Tingkat Urgensi --}}
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Tingkat Urgensi
-                                </label>
-
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-lightning-charge"></i></span>
-                                    <select class="form-control" name="tingkat_urgensi_skor" required
-                                        onchange="document.getElementById('tingkat_urgensi_label').value=this.options[this.selectedIndex].text;">
-                                        <option value="">Pilih Tingkat Urgensi</option>
-                                        <option value="20">Tidak Mendesak</option>
-                                        <option value="40">Cukup Mendesak </option>
-                                        <option value="70">Mendesak </option>
-                                        <option value="90">Sangat Mendesak</option>
-                                    </select>
-                                    <input type="hidden" name="tingkat_urgensi_label" id="tingkat_urgensi_label">
+                            {{-- KRITERIA DINAMIS --}}
+                            <div id="kriteriaContainer" class="mb-3">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="visually-hidden">Loading...</span>
                                 </div>
-                            </div>
-
-                            {{-- Dampak Masalah --}}
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Dampak Masalah
-                                </label>
-
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-bar-chart"></i></span>
-                                    <select class="form-control" name="dampak_masalah_skor" required
-                                        onchange="document.getElementById('dampak_masalah_label').value=this.options[this.selectedIndex].text;">
-                                        <option value="">Pilih Dampak Masalah</option>
-                                        <option value="20">Dampak Kecil</option>
-                                        <option value="40">Dampak Sedang</option>
-                                        <option value="70">Dampak Besar</option>
-                                        <option value="90">Dampak Sangat Besar </option>
-                                    </select>
-                                    <input type="hidden" name="dampak_masalah_label" id="dampak_masalah_label">
-                                </div>
-                            </div>
-
-                            {{-- Kategori Masalah --}}
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Kategori Masalah
-                                </label>
-
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-layers"></i></span>
-                                    <select class="form-control" name="kategori_masalah_skor" required
-                                        onchange="document.getElementById('kategori_masalah_label').value=this.options[this.selectedIndex].text;">
-
-                                        <option value="">Pilih Kategori Masalah</option>
-
-                                        {{-- Akademik --}}
-                                        <option value="20">Akademik</option>
-                                        <option value="40">Karir</option>
-                                        <option value="70">Pribadi</option>
-                                        <option value="90">Sosial</option>
-
-                                    </select>
-
-                                    <input type="hidden" name="kategori_masalah_label" id="kategori_masalah_label">
-                                </div>
-                            </div>
-
-
-                            {{-- Riwayat Konseling --}}
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Riwayat Konseling
-                                </label>
-
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-clock-history"></i></span>
-                                    <select class="form-control" name="riwayat_konseling_skor" required
-                                        onchange="document.getElementById('riwayat_konseling_label').value=this.options[this.selectedIndex].text;">
-                                        <option value="">Pilih Riwayat Konseling</option>
-                                        <option value="20">Sudah Sering Konseling</option>
-                                        <option value="40">Sudah Beberapa Kali </option>
-                                        <option value="70">Jarang Pernah</option>
-                                        <option value="90">Belum Pernah Konseling </option>
-                                    </select>
-                                    <input type="hidden" name="riwayat_konseling_label" id="riwayat_konseling_label">
-                                </div>
+                                <span>Loading kriteria...</span>
                             </div>
 
                             {{-- Deskripsi --}}
@@ -282,6 +247,15 @@
                                 </div>
                             </div>
 
+                            {{-- SKOR Akhir --}}
+
+                            <div class="mb-3">
+                                <div class="alert alert-success" role="alert">
+                                    <strong>Skor Prioritas Sebelum Pembobotan:</strong> <span id="skorEstimasi" class="badge bg-primary">0</span>
+                                </div>
+                            </div>
+
+                            {{-- Upload Bukti Masalah --}}
                             <div class="mb-3">
                                 <label class="form-label">Upload Bukti Masalah (Foto/Video) <span
                                         class="text-muted">(Opsional)</span></label>
@@ -413,6 +387,138 @@
 @section('scripts')
     <script>
         $(document).ready(function() {
+            let jumlahRiwayatSelesai = 0;
+
+            // Load kriteria saat modal dibuka
+            $('#permohonanKonselingModal').on('show.bs.modal', function() {
+                if (!$(this).data('loaded')) {
+                    loadRiwayatSelesai();
+                    loadKriteria();
+                    $(this).data('loaded', true);
+                }
+            });
+
+            // Load jumlah riwayat yang sudah selesai
+            function loadRiwayatSelesai() {
+                $.ajax({
+                    url: "{{ route('api.kriteria.index') }}?include_riwayat_count=1",
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.jumlah_riwayat_selesai !== undefined) {
+                            jumlahRiwayatSelesai = response.jumlah_riwayat_selesai;
+                        }
+                    },
+                    error: function() {
+                        // Fallback jika API error
+                        jumlahRiwayatSelesai = 0;
+                    }
+                });
+            }
+
+            // Load kriteria from API
+            function loadKriteria() {
+                $.ajax({
+                    url: "{{ route('api.kriteria.index') }}",
+                    type: 'GET',
+                    success: function(response) {
+                        let html = '';
+                        if (response.data && response.data.length > 0) {
+                            response.data.forEach(function(kriteria, index) {
+                                // Tampilkan informasi untuk kriteria riwayat konseling (diisi otomatis)
+                                if (kriteria.nama === 'riwayat_konseling') {
+                                    html += `
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">
+                                                ${kriteria.nama}
+                                                <span class="badge bg-secondary">${kriteria.bobot * 100}%</span>
+                                            </label>
+                                            <small class="text-muted d-block mb-2">${kriteria.deskripsi || ''}</small>
+                                            <div class="alert alert-info" role="alert">
+                                                <i class="bi bi-info-circle"></i> <strong>Riwayat Konseling Bulan ini : </strong><strong>${jumlahRiwayatSelesai}</strong> Akan digunakan untuk menentukan skor otomatis.
+                                            </div>
+                                        </div>
+                                    `;
+                                    return;
+                                }
+
+                                html += `
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            ${kriteria.nama}
+                                            <span class="badge bg-secondary">${kriteria.bobot * 100}%</span>
+                                        </label>
+                                        <small class="text-muted d-block mb-2">${kriteria.deskripsi || ''}</small>
+                                        <div class="btn-group-vertical w-100" role="group">
+                                `;
+                                
+                                if (kriteria.sub_kriterias && kriteria.sub_kriterias.length > 0) {
+                                    kriteria.sub_kriterias.forEach(function(subKriteria) {
+                                        html += `
+                                            <input type="radio" class="btn-check sub-kriteria-input" 
+                                                name="sub_kriteria_${kriteria.id}" 
+                                                id="sub_kriteria_${subKriteria.id}"
+                                                value="${subKriteria.id}"
+                                                data-kriteria-id="${kriteria.id}"
+                                                data-skor="${subKriteria.skor}"
+                                                data-label="${subKriteria.label}"
+                                                required>
+                                            <label class="btn btn-outline-primary text-start" for="sub_kriteria_${subKriteria.id}">
+                                                <span>${subKriteria.label}</span>
+                                                <span class="badge bg-info float-end">${subKriteria.skor}</span>
+                                            </label>
+                                        `;
+                                    });
+                                }
+                                
+                                html += `
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            $('#kriteriaContainer').html(html);
+                            
+                            // Attach change handlers untuk calculate skor
+                            $(document).on('change', '.sub-kriteria-input', function() {
+                                calculateSkor();
+                            });
+                        } else {
+                            $('#kriteriaContainer').html('<div class="alert alert-warning">Tidak ada kriteria tersedia</div>');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error loading kriteria:', xhr);
+                        $('#kriteriaContainer').html('<div class="alert alert-danger">Gagal memuat kriteria</div>');
+                    }
+                });
+            }
+
+            // Calculate skor estimasi
+            function calculateSkor() {
+                let totalSkor = 0;
+                let selectedKriterias = {};
+                
+                $('.sub-kriteria-input:checked').each(function() {
+                    let kriteriaId = $(this).data('kriteria-id');
+                    let skor = parseInt($(this).data('skor'));
+                    selectedKriterias[kriteriaId] = skor;
+                    totalSkor += skor;
+                });
+                
+                $('#skorEstimasi').text(totalSkor);
+                $('#skorEstimasi').removeClass('bg-primary bg-warning bg-danger bg-success');
+                
+                if (totalSkor >= 250) {
+                    $('#skorEstimasi').addClass('bg-danger');
+                } else if (totalSkor >= 200) {
+                    $('#skorEstimasi').addClass('bg-warning');
+                } else if (totalSkor >= 100) {
+                    $('#skorEstimasi').addClass('bg-info');
+                } else {
+                    $('#skorEstimasi').addClass('bg-primary');
+                }
+            }
+
             $('.approve-permohonan').on('click', function() {
                 $('#approveForm').attr('action', "{{ url('permohonan-konseling/approve') }}/" + $(this)
                     .data('id'));
@@ -428,7 +534,7 @@
                     .data('id'));
             });
 
-            $('#datatablePermohonanpe').DataTable({
+            $('#datatablePermohonan').DataTable({
                 order: [
                     [5, 'desc']
                 ],
@@ -437,6 +543,29 @@
                     targets: -1
                 }]
             });
+
+            // Initialize tooltips untuk show rumus
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl, { html: true });
+            });
         });
+
+        // Toggle breakdown detail
+        function toggleBreakdown(event, id) {
+            event.preventDefault();
+            const element = document.getElementById('breakdown-' + id);
+            const icon = event.target.closest('i');
+            
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+                icon.classList.remove('bi-chevron-right');
+                icon.classList.add('bi-chevron-down');
+            } else {
+                element.style.display = 'none';
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-right');
+            }
+        }
     </script>
 @endsection
