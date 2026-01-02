@@ -57,8 +57,6 @@ class PermohonanKonselingController extends Controller
             'siswaWali'
         ));
     }
-
-
     public function store(Request $request)
     {
         $request->validate([
