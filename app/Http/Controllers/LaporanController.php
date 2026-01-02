@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\PermohonanKonseling;
 use App\Models\TahunAkademik;
 use App\Models\Kelas;
+use Illuminate\Support\Facades\Auth;
 
 class LaporanController extends Controller
 {
@@ -19,6 +20,14 @@ class LaporanController extends Controller
             'siswa.kelas',
             'guruBk.user'
         ])->where('status', 'selesai');
+
+        // Filter untuk orangtua - hanya melihat laporan anaknya sendiri
+        if (Auth::user()->isOrangTua()) {
+            $orangtua = Auth::user()->orangtua;
+            if ($orangtua && $orangtua->siswa_id) {
+                $query->where('siswa_id', $orangtua->siswa_id);
+            }
+        }
 
         if ($request->tahun_akademik) {
             $query->whereHas('siswa.kelas', function ($q) use ($request) {
@@ -56,6 +65,14 @@ class LaporanController extends Controller
             'siswa.user',
             'siswa.kelas'
         ])->where('status', 'selesai');
+
+        // Filter untuk orangtua - hanya melihat laporan anaknya sendiri
+        if (Auth::user()->isOrangTua()) {
+            $orangtua = Auth::user()->orangtua;
+            if ($orangtua && $orangtua->siswa_id) {
+                $query->where('siswa_id', $orangtua->siswa_id);
+            }
+        }
 
         if ($request->tahun_akademik) {
             $query->whereHas('siswa.kelas', function ($q) use ($request) {

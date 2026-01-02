@@ -16,7 +16,6 @@
                                 <th>Deskripsi Permasalahan</th>
                                 <th>Status</th>
                                 <th>Rangkuman</th>
-                                <th>Skor Prioritas</th>
                             </tr>
                         </thead>
                         <tbody id="riwayatKonselingTable">
@@ -57,20 +56,6 @@
                                         @endif
                                     </td>
                                     <td>{{ Str::limit($jadwal->rangkuman, 50) }}</td>
-                                    <td>
-                                        <strong>{{ $jadwal->skor_prioritas }}</strong>
-                                        <div class="text-muted small">
-                                            <div>Urgensi: {{ $jadwal->tingkat_urgensi_label }}
-                                                ({{ $jadwal->tingkat_urgensi_skor }})
-                                            </div>
-                                            <div>Dampak: {{ $jadwal->dampak_masalah_label }}
-                                                ({{ $jadwal->dampak_masalah_skor }})</div>
-                                            <div>Kategori: {{ $jadwal->kategori_masalah_label }}
-                                                ({{ $jadwal->kategori_masalah_skor }})</div>
-                                            <div>Riwayat: {{ $jadwal->riwayat_konseling_label }}
-                                                ({{ $jadwal->riwayat_konseling_skor }})</div>
-                                        </div>
-                                    </td>
 
                                 </tr>
                             @endforeach
@@ -86,9 +71,7 @@
     <script>
         $(document).ready(function() {
             $('#datatableRiwayat').DataTable({
-                order: [
-                    [5, 'desc']
-                ],
+                order: [],
                 columnDefs: [{
                     orderable: false,
                     targets: -1

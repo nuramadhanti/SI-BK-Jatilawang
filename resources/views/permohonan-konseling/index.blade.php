@@ -198,7 +198,7 @@
                                         onchange="document.getElementById('tingkat_urgensi_label').value=this.options[this.selectedIndex].text;">
                                         <option value="">Pilih Tingkat Urgensi</option>
                                         <option value="20">Tidak Mendesak</option>
-                                        <option value="40">Sedang Mendesak </option>
+                                        <option value="40">Cukup Mendesak </option>
                                         <option value="70">Mendesak </option>
                                         <option value="90">Sangat Mendesak</option>
                                     </select>

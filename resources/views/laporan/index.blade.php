@@ -88,6 +88,7 @@
                                 <th>Penyelesaian</th>
                                 <th>Nama Konselor</th>
                                 <th>Status</th>
+                                <th>Bukti</th>
                             </tr>
                         </thead>
 
@@ -110,9 +111,43 @@
 
                             @if ($laporan->isEmpty())
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted">
+                                    <td colspan="10" class="text-center text-muted">
                                         Tidak ada data konseling.
                                     </td>
+
+                            @if ($row->bukti_masalah)
+                                            @php
+                                                $ext = strtolower(
+                                                    pathinfo($row->bukti_masalah, PATHINFO_EXTENSION),
+                                                );
+                                            @endphp
+
+                                            {{-- FOTO --}}
+                                            @if (in_array($ext, ['jpg', 'jpeg', 'png']))
+                                                <a href="{{ asset('storage/' . $row->bukti_masalah) }}"
+                                                    target="_blank">
+                                                    <img src="{{ asset('storage/' . $row->bukti_masalah) }}"
+                                                        width="60" class="img-thumbnail">
+                                                </a>
+
+                                                {{-- VIDEO --}}
+                                            @elseif (in_array($ext, ['mp4', 'mov', 'avi']))
+                                                <video width="100" controls>
+                                                    <source src="{{ asset('storage/' . $row->bukti_masalah) }}">
+                                                </video>
+
+                                                {{-- FILE LAIN --}}
+                                            @else
+                                                <a href="{{ asset('storage/' . $row->bukti_masalah) }}"
+                                                    class="btn btn-info btn-sm" target="_blank">
+                                                    <i class="bi bi-eye"></i> Lihat File
+                                                </a>
+                                            @endif
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+
                                 </tr>
                             @endif
                         </tbody>
