@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\PermohonanKonseling;
 use App\Models\PermohonanKriteria;
-use App\Models\KategoriKonseling;
 use App\Models\Kriteria;
 use App\Models\Siswa;
+use App\Http\Requests\StorePermohonanKonselingRequest;
 use App\Notifications\PermohonanKonselingNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,24 +51,16 @@ class PermohonanKonselingController extends Controller
         }
 
         $permohonanKonseling = $query->get();
-        $kategoriKonseling = KategoriKonseling::all();
         $kriterias = Kriteria::where('aktif', true)->orderBy('urutan')->get();
 
         return view('permohonan-konseling.index', compact(
             'permohonanKonseling',
-            'kategoriKonseling',
             'siswaWali',
             'kriterias'
         ));
     }
-    public function store(Request $request)
+    public function store(StorePermohonanKonselingRequest $request)
     {
-        $request->validate([
-            'deskripsi_permasalahan' => 'required|string',
-            'bukti_masalah' => 'nullable|file|mimes:jpeg,jpg,png,mp4,mov,avi|max:50000',
-            'siswa_id' => 'required_if:role,guru',
-        ]);
-
         $user = Auth::user();
 
         $reportType = $user->role === 'siswa' ? 'self' : 'teacher';

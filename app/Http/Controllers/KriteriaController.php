@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Kriteria;
 use App\Models\SubKriteria;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreKriteriaRequest;
+use App\Http\Requests\UpdateKriteriaRequest;
+use App\Http\Requests\StoreSubKriteriaRequest;
+use App\Http\Requests\UpdateSubKriteriaRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class KriteriaController extends Controller
 {
@@ -22,39 +26,55 @@ class KriteriaController extends Controller
     public function index()
     {
         $kriterias = Kriteria::orderBy('urutan')->get();
-        return view('admin.kriteria.index', compact('kriterias'));
+        $totalBobot = $kriterias->where('aktif', true)->sum('bobot');
+        
+        return view('admin.kriteria.index', compact('kriterias', 'totalBobot'));
     }
 
-    public function store(Request $request)
+    public function store(StoreKriteriaRequest $request)
     {
-        $request->validate([
-            'nama' => 'required|string|unique:kriterias,nama' . ($request->has('id') ? ',' . $request->id : ''),
-            'deskripsi' => 'nullable|string',
-            'bobot' => 'required|numeric|between:0,1',
-            'urutan' => 'required|integer',
-        ]);
-
-        if ($request->has('id') && $request->id) {
-            $kriteria = Kriteria::findOrFail($request->id);
-            $kriteria->update($request->except('id'));
-            return redirect()->route('kriteria.index')->with('success', 'Kriteria berhasil diperbarui.');
+        // Validate bobot total
+        $totalBobot = Kriteria::where('aktif', true)->sum('bobot');
+        
+        // Add custom validation for bobot total
+        $validator = Validator::make($request->all(), []);
+        $validator->after(function ($validator) use ($request, $totalBobot) {
+            $newTotal = round($totalBobot + (float)$request->bobot, 2);
+            if ($newTotal > 1.0) {
+                $validator->errors()->add('bobot', 
+                    'Total bobot tidak boleh melebihi 1.0. Saat ini: ' . $totalBobot . ', Akan menjadi: ' . $newTotal);
+            }
+        });
+        
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        Kriteria::create($request->except('id'));
+        Kriteria::create($request->validated());
         return redirect()->route('kriteria.index')->with('success', 'Kriteria berhasil ditambahkan.');
     }
 
-    public function update(Request $request, Kriteria $kriteria)
+    public function update(UpdateKriteriaRequest $request, Kriteria $kriteria)
     {
-        $request->validate([
-            'nama' => 'required|string|unique:kriterias,nama,' . $kriteria->id,
-            'deskripsi' => 'nullable|string',
-            'bobot' => 'required|numeric|between:0,1',
-            'urutan' => 'required|integer',
-            'aktif' => 'boolean',
-        ]);
+        // Validate bobot total (excluding current kriteria)
+        $otherBobot = Kriteria::where('id', '!=', $kriteria->id)
+            ->where('aktif', true)
+            ->sum('bobot');
+        
+        $validator = Validator::make($request->all(), []);
+        $validator->after(function ($validator) use ($request, $otherBobot) {
+            $newTotal = round($otherBobot + (float)$request->bobot, 2);
+            if ($newTotal > 1.0) {
+                $validator->errors()->add('bobot', 
+                    'Total bobot tidak boleh melebihi 1.0. Akan menjadi: ' . $newTotal);
+            }
+        });
+        
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
 
-        $kriteria->update($request->all());
+        $kriteria->update($request->validated());
         return redirect()->route('kriteria.index')->with('success', 'Kriteria berhasil diperbarui.');
     }
 
@@ -71,36 +91,15 @@ class KriteriaController extends Controller
         return view('admin.kriteria.sub-kriteria.index', compact('kriteria', 'subKriterias'));
     }
 
-    public function subKriteriaStore(Request $request, Kriteria $kriteria)
+    public function subKriteriaStore(StoreSubKriteriaRequest $request, Kriteria $kriteria)
     {
-        $request->validate([
-            'label' => 'required|string',
-            'skor' => 'required|integer|between:0,100',
-            'deskripsi' => 'nullable|string',
-            'urutan' => 'required|integer',
-        ]);
-
-        if ($request->has('id') && $request->id) {
-            $subKriteria = SubKriteria::findOrFail($request->id);
-            $subKriteria->update($request->except('id'));
-            return redirect()->route('kriteria.sub-kriteria.index', $kriteria)->with('success', 'Sub-kriteria berhasil diperbarui.');
-        }
-
-        $kriteria->subKriterias()->create($request->except('id'));
+        $kriteria->subKriterias()->create($request->validated());
         return redirect()->route('kriteria.sub-kriteria.index', $kriteria)->with('success', 'Sub-kriteria berhasil ditambahkan.');
     }
 
-    public function subKriteriaUpdate(Request $request, Kriteria $kriteria, SubKriteria $subKriteria)
+    public function subKriteriaUpdate(UpdateSubKriteriaRequest $request, Kriteria $kriteria, SubKriteria $subKriteria)
     {
-        $request->validate([
-            'label' => 'required|string',
-            'skor' => 'required|integer|between:0,100',
-            'deskripsi' => 'nullable|string',
-            'urutan' => 'required|integer',
-            'aktif' => 'boolean',
-        ]);
-
-        $subKriteria->update($request->all());
+        $subKriteria->update($request->validated());
         return redirect()->route('kriteria.sub-kriteria.index', $kriteria)->with('success', 'Sub-kriteria berhasil diperbarui.');
     }
 
@@ -110,3 +109,4 @@ class KriteriaController extends Controller
         return redirect()->route('kriteria.sub-kriteria.index', $kriteria)->with('success', 'Sub-kriteria berhasil dihapus.');
     }
 }
+

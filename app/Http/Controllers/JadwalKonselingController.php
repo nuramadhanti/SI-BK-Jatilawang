@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KategoriKonseling;
 use App\Models\PermohonanKonseling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,8 +46,6 @@ class JadwalKonselingController extends Controller
 
         $jadwalKonseling = $query->get();
 
-        $kategoriKonseling = KategoriKonseling::all();
-
-        return view('jadwal-konseling.index', compact('jadwalKonseling', 'kategoriKonseling'));
+        return view('jadwal-konseling.index', compact('jadwalKonseling'));
     }
 }

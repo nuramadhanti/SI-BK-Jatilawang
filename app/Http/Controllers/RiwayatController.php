@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KategoriKonseling;
 use App\Models\PermohonanKonseling;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

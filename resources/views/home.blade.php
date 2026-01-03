@@ -239,23 +239,6 @@
                         </div>
                     </div>
 
-                    <div class="col-6 col-lg-4 col-md-6 mb-3">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body px-4 py-4">
-                                <div class="row align-items-center">
-                                    <div class="col-md-4">
-                                        <div class="stats-icon" style="background-color: rgba(156, 39, 176, 0.1); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                                            <i class="iconly-boldUser" style="color: #9c27b0; font-size: 24px;"></i>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-8">
-                                        <h6 class="text-muted font-semibold mb-1">Siswa (Anak)</h6>
-                                        <h5 class="font-extrabold mb-0">{{ $anak->user->name }}</h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Informasi Siswa -->

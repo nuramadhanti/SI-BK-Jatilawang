@@ -3,7 +3,6 @@
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JadwalKonselingController;
-use App\Http\Controllers\KategoriKonselingController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\KriteriaController;
 use App\Http\Controllers\ManajemenUserController;
@@ -52,9 +51,6 @@ Route::middleware(['auth'])->group(function () {
     // Kelas & Tahun Akademik
     Route::resource('kelas', KelasController::class);
     Route::resource('tahun-akademik', TahunAkademikController::class);
-
-    // Kategori Konseling
-    Route::resource('kategori-konseling', KategoriKonselingController::class);
 
     // Permohonan Konseling
     Route::resource('permohonan-konseling', PermohonanKonselingController::class)->only(['index', 'store', 'create']);
