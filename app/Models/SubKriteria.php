@@ -13,7 +13,7 @@ class SubKriteria extends Model
         'label',
         'skor',
         'deskripsi',
-        'urutan',
+        'guidance_text',
         'aktif',
     ];
 

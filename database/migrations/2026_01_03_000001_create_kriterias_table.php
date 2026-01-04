@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('nama'); // 'tingkat_urgensi', 'dampak_masalah', 'kategori_masalah', 'riwayat_konseling'
             $table->string('deskripsi')->nullable();
             $table->decimal('bobot', 3, 2); // 0.4, 0.3, 0.2, 0.1
-            $table->integer('urutan');
             $table->boolean('aktif')->default(true);
             $table->timestamps();
         });

@@ -149,16 +149,37 @@ class SISeeder extends Seeder
         ]);
 
         // ====== PERMOHONAN KONSELING (dummy) ======
-        DB::table('permohonan_konseling')->insert([
+        // Get guru_bk_id (Suraji)
+        $guruBkId = DB::table('guru')->where('role_guru', 'bk')->first()->id;
+
+        $permohonanId = DB::table('permohonan_konseling')->insertGetId([
             'siswa_id' => $siswaId,
+            'guru_bk_id' => $guruBkId,
             'tanggal_pengajuan' => Carbon::now()->toDateString(),
-            'deskripsi_permasalahan' => 'Kesulitan memahami materi Matematika.',
+            'deskripsi_permasalahan' => 'Kesulitan memahami materi Matematika dan konsentrasi saat belajar.',
             'status' => 'menunggu',
+            'alasan_penolakan' => null,
+            'approved_by' => null,
+            'approved_at' => null,
             'rangkuman' => null,
             'tanggal_disetujui' => null,
             'tempat' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Get all kriterias for permohonan_kriteria
+        $kriterias = DB::table('kriterias')->get();
+
+        // Seeding permohonan_kriteria with sample scores
+        foreach ($kriterias as $kriteria) {
+            DB::table('permohonan_kriteria')->insert([
+                'permohonan_konseling_id' => $permohonanId,
+                'kriteria_id' => $kriteria->id,
+                'skor' => rand(1, 5),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }

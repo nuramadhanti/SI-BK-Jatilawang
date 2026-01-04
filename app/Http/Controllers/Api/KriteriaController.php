@@ -11,9 +11,8 @@ class KriteriaController extends Controller
     public function index()
     {
         $kriterias = Kriteria::where('aktif', true)
-            ->orderBy('urutan')
             ->with(['subKriterias' => function ($query) {
-                $query->where('aktif', true)->orderBy('urutan');
+                $query->where('aktif', true);
             }])
             ->get();
 

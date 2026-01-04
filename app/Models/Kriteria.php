@@ -12,7 +12,6 @@ class Kriteria extends Model
         'nama',
         'deskripsi',
         'bobot',
-        'urutan',
         'aktif',
     ];
 
@@ -25,7 +24,7 @@ class Kriteria extends Model
     {
         return $this->hasMany(SubKriteria::class)
             ->where('aktif', true)
-            ->orderBy('urutan');
+            ->orderBy('skor', 'asc');
     }
 
     public function permohonanKriterias()

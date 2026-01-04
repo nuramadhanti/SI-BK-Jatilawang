@@ -25,7 +25,7 @@ class KriteriaController extends Controller
 
     public function index()
     {
-        $kriterias = Kriteria::orderBy('urutan')->get();
+        $kriterias = Kriteria::orderBy('bobot')->get();
         $totalBobot = $kriterias->where('aktif', true)->sum('bobot');
         
         return view('admin.kriteria.index', compact('kriterias', 'totalBobot'));
@@ -87,7 +87,7 @@ class KriteriaController extends Controller
     // Sub-Kriteria Management
     public function subKriteriaIndex(Kriteria $kriteria)
     {
-        $subKriterias = $kriteria->subKriterias()->orderBy('urutan')->get();
+        $subKriterias = $kriteria->subKriterias()->orderBy('skor')->get();
         return view('admin.kriteria.sub-kriteria.index', compact('kriteria', 'subKriterias'));
     }
 

@@ -26,7 +26,6 @@ class StoreSubKriteriaRequest extends FormRequest
             'label' => 'required|string|max:100',
             'skor' => 'required|integer|min:1|max:100',
             'deskripsi' => 'nullable|string|max:500',
-            'urutan' => 'required|integer|min:1|max:50',
             'aktif' => 'boolean',
         ];
     }
@@ -43,9 +42,6 @@ class StoreSubKriteriaRequest extends FormRequest
             'skor.integer' => 'Skor harus berupa angka bulat',
             'skor.min' => 'Skor minimal 1',
             'skor.max' => 'Skor maksimal 100',
-            'urutan.required' => 'Urutan tidak boleh kosong',
-            'urutan.integer' => 'Urutan harus berupa angka',
-            'urutan.min' => 'Urutan minimal 1',
         ];
     }
 
@@ -58,7 +54,6 @@ class StoreSubKriteriaRequest extends FormRequest
             'label' => 'Label',
             'skor' => 'Skor',
             'deskripsi' => 'Deskripsi',
-            'urutan' => 'Urutan',
             'aktif' => 'Status Aktif',
         ];
     }

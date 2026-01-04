@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('label'); // 'Cukup Mendesak', 'Mendesak', 'Sangat Mendesak'
             $table->integer('skor'); // 20, 40, 70, 90
             $table->text('deskripsi')->nullable();
-            $table->integer('urutan');
             $table->boolean('aktif')->default(true);
             $table->timestamps();
         });

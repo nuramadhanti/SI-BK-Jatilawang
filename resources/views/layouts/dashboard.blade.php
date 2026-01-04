@@ -122,14 +122,47 @@
                                         <a href="{{ route('permohonan-konseling.index') }}"
                                             class="list-group-item list-group-item-action d-flex justify-content-between align-items-start notif-item {{ is_null($notification->read_at) ? 'bg-light' : '' }}"
                                             data-id="{{ $notification->id }}">
-                                            <div>
-                                                <div class="fw-bold">Permohonan Konseling</div>
-                                                <small class="text-muted">{{ $notification->data['message'] }}</small>
-                                                <div class="text-muted small">Status:
-                                                    {{ ucfirst($notification->data['status']) }}</div>
+                                            <div class="flex-grow-1">
+                                                <div class="fw-bold d-flex align-items-center gap-2">
+                                                    @if ($notification->data['type'] === 'new')
+                                                        <span class="badge bg-info">🔔 Baru</span>
+                                                    @elseif ($notification->data['type'] === 'approved')
+                                                        <span class="badge bg-success">✅ Disetujui</span>
+                                                    @elseif ($notification->data['type'] === 'rejected')
+                                                        <span class="badge bg-danger">❌ Ditolak</span>
+                                                    @elseif ($notification->data['type'] === 'completed')
+                                                        <span class="badge bg-primary">🎉 Selesai</span>
+                                                    @endif
+                                                    Permohonan Konseling
+                                                </div>
+                                                <small class="text-muted d-block">{{ $notification->data['message'] }}</small>
+                                                
+                                                {{-- Enhanced Priority 1 Data --}}
+                                                @if (!empty($notification->data['skor_prioritas']))
+                                                    <small class="d-block text-muted mt-1">
+                                                        📊 Skor: <strong>{{ $notification->data['skor_prioritas'] }}</strong>
+                                                    </small>
+                                                @endif
+                                                
+                                                @if (!empty($notification->data['kategori_masalah']))
+                                                    <small class="d-block text-muted">
+                                                        🏷️ Kategori: <strong>{{ $notification->data['kategori_masalah'] }}</strong>
+                                                    </small>
+                                                @endif
+                                                
+                                                @if ($notification->data['type'] === 'rejected' && !empty($notification->data['alasan_penolakan']))
+                                                    <small class="d-block text-danger mt-1">
+                                                        <strong>📝 Alasan:</strong> {{ substr($notification->data['alasan_penolakan'], 0, 50) }}...
+                                                    </small>
+                                                @endif
+                                                
+                                                <div class="text-muted small mt-1">
+                                                    Status: <strong>{{ ucfirst($notification->data['status']) }}</strong>
+                                                </div>
                                             </div>
-                                            <small
-                                                class="text-muted">{{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}</small>
+                                            <small class="text-muted text-nowrap ms-2">
+                                                {{ \Carbon\Carbon::parse($notification->created_at)->diffForHumans() }}
+                                            </small>
                                         </a>
                                     @empty
                                         <div class="list-group-item text-center">

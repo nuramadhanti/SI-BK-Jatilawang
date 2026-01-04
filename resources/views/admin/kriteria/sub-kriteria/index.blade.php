@@ -32,7 +32,6 @@
                             <tr>
                                 <th>Label</th>
                                 <th>Skor</th>
-                                <th>Urutan</th>
                                 <th>Status</th>
                                 <th>Deskripsi</th>
                                 <th>Aksi</th>
@@ -43,7 +42,6 @@
                                 <tr data-id="{{ $subKriteria->id }}">
                                     <td>{{ $subKriteria->label }}</td>
                                     <td><span class="badge bg-primary">{{ $subKriteria->skor }}</span></td>
-                                    <td>{{ $subKriteria->urutan }}</td>
                                     <td>
                                         @if ($subKriteria->aktif)
                                             <span class="badge bg-success">Aktif</span>
@@ -57,7 +55,6 @@
                                             data-id="{{ $subKriteria->id }}"
                                             data-label="{{ $subKriteria->label }}" 
                                             data-skor="{{ $subKriteria->skor }}"
-                                            data-urutan="{{ $subKriteria->urutan }}" 
                                             data-deskripsi="{{ $subKriteria->deskripsi }}"
                                             data-aktif="{{ $subKriteria->aktif }}" 
                                             data-bs-toggle="modal"
@@ -120,15 +117,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label for="urutan" class="form-label">Urutan</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-sort-numeric-down"></i></span>
-                                <input type="number" class="form-control" id="urutan" name="urutan" min="1"
-                                    placeholder="1" required>
-                            </div>
-                        </div>
-
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="aktif" name="aktif" value="1" checked>
                             <label class="form-check-label" for="aktif">
@@ -156,7 +144,6 @@
                 document.getElementById('sub_kriteria_id').value = id;
                 document.getElementById('label').value = this.dataset.label;
                 document.getElementById('skor').value = this.dataset.skor;
-                document.getElementById('urutan').value = this.dataset.urutan;
                 document.getElementById('deskripsi').value = this.dataset.deskripsi;
                 document.getElementById('aktif').checked = this.dataset.aktif == 1;
                 document.getElementById('subKriteriaModalLabel').textContent = 'Edit Sub-Kriteria';

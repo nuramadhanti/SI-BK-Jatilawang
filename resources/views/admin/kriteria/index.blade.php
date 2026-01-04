@@ -24,7 +24,6 @@
                             <tr>
                                 <th>Nama Kriteria</th>
                                 <th>Bobot</th>
-                                <th>Urutan</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -34,7 +33,6 @@
                                 <tr data-id="{{ $kriteria->id }}">
                                     <td>{{ ucfirst(str_replace('_', ' ', $kriteria->nama)) }}</td>
                                     <td><span class="badge bg-info">{{ $kriteria->bobot * 100 }}%</span></td>
-                                    <td>{{ $kriteria->urutan }}</td>
                                     <td>
                                         @if ($kriteria->aktif)
                                             <span class="badge bg-success">Aktif</span>
@@ -47,7 +45,7 @@
                                             class="btn btn-sm btn-info"><i class="bi bi-list-check"></i> Sub-Kriteria</a>
                                         <button class="btn btn-sm btn-warning edit-kriteria" data-id="{{ $kriteria->id }}"
                                             data-nama="{{ $kriteria->nama }}" data-deskripsi="{{ $kriteria->deskripsi }}"
-                                            data-bobot="{{ $kriteria->bobot }}" data-urutan="{{ $kriteria->urutan }}"
+                                            data-bobot="{{ $kriteria->bobot }}"
                                             data-aktif="{{ $kriteria->aktif }}" data-bs-toggle="modal"
                                             data-bs-target="#kriteriaModal"><i class="bi bi-pencil"></i> Edit</button>
                                         <form action="{{ route('kriteria.destroy', $kriteria->id) }}" method="POST"
@@ -109,15 +107,6 @@
                             </div>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label for="urutan" class="form-label">Urutan</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-sort-numeric-down"></i></span>
-                                <input type="number" class="form-control" id="urutan" name="urutan" min="1"
-                                    placeholder="1" required>
-                            </div>
-                        </div>
-
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="aktif" name="aktif" value="1">
                             <label class="form-check-label" for="aktif">
@@ -146,7 +135,6 @@
                 document.getElementById('nama').value = this.dataset.nama;
                 document.getElementById('deskripsi').value = this.dataset.deskripsi;
                 document.getElementById('bobot').value = this.dataset.bobot;
-                document.getElementById('urutan').value = this.dataset.urutan;
                 document.getElementById('aktif').checked = this.dataset.aktif == 1;
                 document.getElementById('kriteriaModalLabel').textContent = 'Edit Kriteria';
                 document.getElementById('kriteriaForm').action = `/kriteria/${id}`;

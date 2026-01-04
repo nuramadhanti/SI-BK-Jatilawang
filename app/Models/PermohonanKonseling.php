@@ -10,12 +10,15 @@ class PermohonanKonseling extends Model
 
     protected $fillable = [
         'siswa_id',
+        'guru_bk_id',
         'tanggal_pengajuan',
         'deskripsi_permasalahan',
         'status',
         'rangkuman',
         'alasan_penolakan',
         'tanggal_disetujui',
+        'approved_by',
+        'approved_at',
         'tempat',
         'nama_konselor',
 
@@ -43,7 +46,12 @@ class PermohonanKonseling extends Model
         return $this->belongsTo(Siswa::class, 'siswa_id');
     }
 
-    public function guruBk()
+    public function guruBkAssigned()
+    {
+        return $this->belongsTo(Guru::class, 'guru_bk_id');
+    }
+
+    public function guruBkApproved()
     {
         return $this->belongsTo(Guru::class, 'approved_by');
     }

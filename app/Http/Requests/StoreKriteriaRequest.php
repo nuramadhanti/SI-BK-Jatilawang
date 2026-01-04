@@ -26,7 +26,6 @@ class StoreKriteriaRequest extends FormRequest
             'nama' => 'required|string|max:100|unique:kriterias,nama',
             'deskripsi' => 'nullable|string|max:500',
             'bobot' => 'required|numeric|min:0|max:1|regex:/^\d+(\.\d{1,2})?$/',
-            'urutan' => 'required|integer|min:1|max:100',
             'aktif' => 'boolean',
         ];
     }
@@ -45,9 +44,6 @@ class StoreKriteriaRequest extends FormRequest
             'bobot.min' => 'Bobot minimal 0',
             'bobot.max' => 'Bobot maksimal 1',
             'bobot.regex' => 'Bobot harus dalam format decimal (contoh: 0.25)',
-            'urutan.required' => 'Urutan tidak boleh kosong',
-            'urutan.integer' => 'Urutan harus berupa angka',
-            'urutan.min' => 'Urutan minimal 1',
         ];
     }
 
@@ -60,7 +56,6 @@ class StoreKriteriaRequest extends FormRequest
             'nama' => 'Nama Kriteria',
             'deskripsi' => 'Deskripsi',
             'bobot' => 'Bobot',
-            'urutan' => 'Urutan',
             'aktif' => 'Status Aktif',
         ];
     }

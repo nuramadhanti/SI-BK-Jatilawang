@@ -51,7 +51,7 @@ class PermohonanKonselingController extends Controller
         }
 
         $permohonanKonseling = $query->get();
-        $kriterias = Kriteria::where('aktif', true)->orderBy('urutan')->get();
+        $kriterias = Kriteria::where('aktif', true)->get();
 
         return view('permohonan-konseling.index', compact(
             'permohonanKonseling',
@@ -167,7 +167,8 @@ class PermohonanKonselingController extends Controller
         foreach ($guruBk as $guru) {
             $guru->notify(new PermohonanKonselingNotification(
                 $permohonan,
-                "$pengaju mengajukan permohonan konseling."
+                "$pengaju mengajukan permohonan konseling.",
+                'new'
             ));
         }
 
@@ -205,17 +206,26 @@ class PermohonanKonselingController extends Controller
         ]);
 
         $permohonan = PermohonanKonseling::findOrFail($id);
+        $guru = Auth::user()->guru;
+        
         $permohonan->update([
             'status' => 'disetujui',
             'tanggal_disetujui' => $request->tanggal_disetujui,
             'tempat' => $request->tempat,
             'nama_konselor' => Auth::user()->name,
+            'guru_bk_id' => $guru->id,
+            'approved_by' => $guru->id,
+            'approved_at' => now(),
         ]);
 
         $user = $permohonan->siswa->user;
-        Notification::send($user, new PermohonanKonselingNotification($permohonan, 'Permohonan konseling Anda telah disetujui.'));
+        Notification::send($user, new PermohonanKonselingNotification(
+            $permohonan, 
+            'Permohonan konseling Anda telah disetujui.',
+            'approved'
+        ));
 
-        return redirect()->back()->with('success', 'Permohonan konseling berhasil disetujui.');
+        return redirect()->back()->with('success', 'Permohonan konseling berhasil disetujui. Notifikasi telah dikirim ke siswa.');
     }
 
     public function reject(Request $request, $id)
@@ -224,16 +234,32 @@ class PermohonanKonselingController extends Controller
             return redirect()->back()->with('error', 'Hanya guru BK yang dapat menolak permohonan.');
         }
 
+        $request->validate([
+            'alasan_penolakan' => 'required|string|min:10|max:500',
+        ], [
+            'alasan_penolakan.required' => 'Alasan penolakan harus diisi.',
+            'alasan_penolakan.min' => 'Alasan penolakan minimal 10 karakter.',
+            'alasan_penolakan.max' => 'Alasan penolakan maksimal 500 karakter.',
+        ]);
+
         $permohonan = PermohonanKonseling::findOrFail($id);
+        $guru = Auth::user()->guru;
+        
         $permohonan->update([
             'status' => 'ditolak',
             'alasan_penolakan' => $request->alasan_penolakan,
+            'approved_by' => $guru->id,
+            'approved_at' => now(),
         ]);
 
         $user = $permohonan->siswa->user;
-        Notification::send($user, new PermohonanKonselingNotification($permohonan, 'Permohonan konseling Anda telah ditolak.'));
+        Notification::send($user, new PermohonanKonselingNotification(
+            $permohonan, 
+            'Permohonan konseling Anda telah ditolak.',
+            'rejected'
+        ));
 
-        return redirect()->back()->with('success', 'Permohonan konseling berhasil ditolak.');
+        return redirect()->back()->with('success', 'Permohonan konseling berhasil ditolak. Notifikasi telah dikirim ke siswa.');
     }
 
     public function complete(Request $request, $id)
@@ -255,8 +281,12 @@ class PermohonanKonselingController extends Controller
 
         // Kirim notifikasi ke siswa
         $user = $permohonan->siswa->user;
-        Notification::send($user, new PermohonanKonselingNotification($permohonan, 'Permohonan konseling Anda telah selesai.'));
+        Notification::send($user, new PermohonanKonselingNotification(
+            $permohonan, 
+            'Permohonan konseling Anda telah selesai.',
+            'completed'
+        ));
 
-        return redirect()->back()->with('success', 'Permohonan konseling telah selesai.');
+        return redirect()->back()->with('success', 'Permohonan konseling telah selesai. Notifikasi telah dikirim ke siswa.');
     }
 }
